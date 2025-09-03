@@ -5,15 +5,47 @@ import { Label } from "@/components/ui/label";
 import { Target, Mail, Lock, User } from "lucide-react";
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const { signIn, signUp, resetPassword } = useAuth();
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // This will be handled by Supabase auth
-    setTimeout(() => setIsLoading(false), 2000);
+    
+    const { data } = await signIn(email, password);
+    if (data?.user) {
+      navigate("/dashboard");
+    }
+    
+    setIsLoading(false);
+  };
+
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    
+    const { data } = await signUp(email, password, displayName);
+    if (data?.user) {
+      navigate("/dashboard");
+    }
+    
+    setIsLoading(false);
+  };
+
+  const handleResetPassword = async () => {
+    if (!email) {
+      return;
+    }
+    
+    await resetPassword(email);
   };
 
   return (
@@ -41,7 +73,7 @@ const Auth = () => {
               </TabsList>
               
               <TabsContent value="signin">
-                <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+                <form onSubmit={handleSignIn} className="space-y-4 mt-4">
                   <div className="space-y-2">
                     <Label htmlFor="email" className="flex items-center gap-2">
                       <Mail className="w-4 h-4" />
@@ -51,6 +83,8 @@ const Auth = () => {
                       id="email"
                       type="email"
                       placeholder="your@email.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                       required
                       className="bg-surface border-border"
                     />
@@ -65,6 +99,8 @@ const Auth = () => {
                       id="password"
                       type="password"
                       placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
                       required
                       className="bg-surface border-border"
                     />
@@ -78,14 +114,19 @@ const Auth = () => {
                     {isLoading ? "Signing in..." : "Sign In"}
                   </Button>
                   
-                  <Button type="button" variant="link" className="w-full text-sm">
+                  <Button 
+                    type="button" 
+                    variant="link" 
+                    className="w-full text-sm"
+                    onClick={handleResetPassword}
+                  >
                     Forgot your password?
                   </Button>
                 </form>
               </TabsContent>
               
               <TabsContent value="signup">
-                <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+                <form onSubmit={handleSignUp} className="space-y-4 mt-4">
                   <div className="space-y-2">
                     <Label htmlFor="signup-name" className="flex items-center gap-2">
                       <User className="w-4 h-4" />
@@ -95,6 +136,8 @@ const Auth = () => {
                       id="signup-name"
                       type="text"
                       placeholder="Your name"
+                      value={displayName}
+                      onChange={(e) => setDisplayName(e.target.value)}
                       required
                       className="bg-surface border-border"
                     />
@@ -109,6 +152,8 @@ const Auth = () => {
                       id="signup-email"
                       type="email"
                       placeholder="your@email.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                       required
                       className="bg-surface border-border"
                     />
@@ -123,6 +168,8 @@ const Auth = () => {
                       id="signup-password"
                       type="password"
                       placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
                       required
                       className="bg-surface border-border"
                     />

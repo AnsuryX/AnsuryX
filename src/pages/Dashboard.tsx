@@ -3,35 +3,70 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Flame, Trophy, Zap, BookOpen, Target, Calendar } from "lucide-react";
-import { useState } from "react";
+import { useCycle } from "@/hooks/useCycle";
+import { useHabits } from "@/hooks/useHabits";
+import { useAuth } from "@/hooks/useAuth";
+import { Link } from "react-router-dom";
+import { useEffect } from "react";
 
 const Dashboard = () => {
-  const [missions, setMissions] = useState([
-    { id: 1, title: "Morning meditation", completed: false },
-    { id: 2, title: "Read 20 pages", completed: true },
-    { id: 3, title: "Exercise for 30 minutes", completed: false },
-    { id: 4, title: "Write in journal", completed: false },
-  ]);
+  const { user } = useAuth();
+  const { activeCycle, habits, getCurrentDay } = useCycle();
+  const { 
+    toggleHabitCompletion, 
+    getHabitCompletion, 
+    getTodayCompletionRate,
+    getCompletedHabitsCount 
+  } = useHabits();
 
-  // Mock data - will be replaced with Supabase data
-  const currentDay = 15;
+  // Mock XP data - will be replaced with real data from Supabase
+  const currentDay = getCurrentDay();
   const totalDays = 40;
-  const currentStreak = 12;
+  const currentStreak = 12; // TODO: Calculate from actual data
   const xpCurrent = 850;
   const xpNext = 1000;
-  const level = 3;
-  const completionRate = 85;
+  const level = Math.floor(xpCurrent / 100) + 1;
+  const completionRate = getTodayCompletionRate();
 
-  const toggleMission = (id: number) => {
-    setMissions(missions.map(mission => 
-      mission.id === id 
-        ? { ...mission, completed: !mission.completed }
-        : mission
-    ));
-  };
+  if (!activeCycle) {
+    return (
+      <div className="min-h-screen bg-background p-4 lg:p-8">
+        <div className="max-w-4xl mx-auto text-center space-y-8">
+          <div className="space-y-4">
+            <div className="flex items-center justify-center gap-2">
+              <Target className="w-12 h-12 text-primary" />
+              <h1 className="text-4xl font-bold text-gradient-primary">
+                Welcome, {user?.user_metadata?.display_name || 'Challenger'}!
+              </h1>
+            </div>
+            <p className="text-xl text-muted-foreground">
+              Ready to start your 40-day transformation journey?
+            </p>
+          </div>
 
-  const completedMissions = missions.filter(m => m.completed).length;
-  const totalMissions = missions.length;
+          <Card className="card-elevated max-w-lg mx-auto">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Target className="w-6 h-6" />
+                No Active Challenge
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-muted-foreground">
+                Create your first 40-day challenge with 2-5 daily missions 
+                and begin your transformation.
+              </p>
+              <Button asChild className="w-full btn-hero">
+                <Link to="/create-cycle">
+                  Start Your First Challenge
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background p-4 lg:p-8">
@@ -117,16 +152,16 @@ const Dashboard = () => {
                 Today's Missions
               </span>
               <Badge variant="outline">
-                {completedMissions}/{totalMissions}
+                {getCompletedHabitsCount()}/{habits.length}
               </Badge>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {missions.map((mission) => (
+            {habits.map((habit) => (
               <div
-                key={mission.id}
+                key={habit.id}
                 className={`flex items-center justify-between p-4 rounded-lg border-2 transition-all duration-300 ${
-                  mission.completed
+                  getHabitCompletion(habit.id)
                     ? 'border-success bg-success/5 glow-success'
                     : 'border-border hover:border-primary/50'
                 }`}
@@ -134,17 +169,17 @@ const Dashboard = () => {
                 <div className="flex items-center gap-3">
                   <Button
                     size="sm"
-                    variant={mission.completed ? "default" : "outline"}
-                    onClick={() => toggleMission(mission.id)}
-                    className={mission.completed ? "bg-success hover:bg-success/90" : ""}
+                    variant={getHabitCompletion(habit.id) ? "default" : "outline"}
+                    onClick={() => toggleHabitCompletion(habit.id)}
+                    className={getHabitCompletion(habit.id) ? "bg-success hover:bg-success/90" : ""}
                   >
-                    {mission.completed ? "✓" : "○"}
+                    {getHabitCompletion(habit.id) ? "✓" : "○"}
                   </Button>
-                  <span className={`text-lg ${mission.completed ? 'line-through text-muted-foreground' : ''}`}>
-                    {mission.title}
+                  <span className={`text-lg ${getHabitCompletion(habit.id) ? 'line-through text-muted-foreground' : ''}`}>
+                    {habit.title}
                   </span>
                 </div>
-                {mission.completed && (
+                {getHabitCompletion(habit.id) && (
                   <Badge variant="secondary" className="bg-success/10 text-success">
                     +10 XP
                   </Badge>
