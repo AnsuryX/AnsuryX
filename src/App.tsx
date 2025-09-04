@@ -8,6 +8,10 @@ import Welcome from "./pages/Welcome";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import CreateCycle from "./pages/CreateCycle";
+import Journal from "./pages/Journal";
+import Analytics from "./pages/Analytics";
+import TrophyRoom from "./pages/TrophyRoom";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import { useAuth } from "./hooks/useAuth";
 
@@ -53,6 +57,26 @@ const App = () => (
             <Route path="/create-cycle" element={
               <ProtectedRoute>
                 <CreateCycle />
+              </ProtectedRoute>
+            } />
+            <Route path="/journal" element={
+              <ProtectedRoute>
+                <Journal />
+              </ProtectedRoute>
+            } />
+            <Route path="/analytics" element={
+              <ProtectedRoute>
+                <Analytics />
+              </ProtectedRoute>
+            } />
+            <Route path="/trophy-room" element={
+              <ProtectedRoute>
+                <TrophyRoom />
+              </ProtectedRoute>
+            } />
+            <Route path="/settings" element={
+              <ProtectedRoute>
+                <Settings />
               </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
